@@ -1,0 +1,6 @@
+name: rag_med
+channels:
+  - defaults
+dependencies:
+  - python=3.11
+  - flask
