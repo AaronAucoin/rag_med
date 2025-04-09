@@ -1,6 +1,14 @@
 name: rag_med
 channels:
   - defaults
+  - conda-forge
 dependencies:
   - python=3.11
   - flask
+  - pip
+  - pip:
+      - faiss-cpu
+      - sentence-transformers
+      - transformers
+      - torch
+      - accelerate

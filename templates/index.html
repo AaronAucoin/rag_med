@@ -19,9 +19,28 @@
         <button class="submit-button">Submit</button>
 
         <div class="response-div">
-            <div id="response1" class="response-box">Medicine: This is the medicine recommended</div>
-            <div id="response2" class="response-box">Reasoning: This is why it is recommended</div>
+            <div id="response1" class="response-box"></div>
+            <div id="response2" class="response-box"></div>
         </div>
     </div>
 </body>
 </html>
+
+<script>
+    document.querySelector('.submit-button').addEventListener('click', async () => {
+        const userInput = document.getElementById('userInput').value;
+
+        const response = await fetch('/query', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ symptoms: userInput })
+        });
+
+        const data = await response.json();
+        document.getElementById('response1').innerText = 'Medicine: ' + data.medicine;
+        document.getElementById('response2').innerText = 'Reasoning: ' + data.reason;
+    });
+</script>
+
