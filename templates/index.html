@@ -39,8 +39,11 @@
         });
 
         const data = await response.json();
+        
+        // Set the response in the divs
         document.getElementById('response1').innerText = 'Medicine: ' + data.medicine;
         document.getElementById('response2').innerText = 'Reasoning: ' + data.reason;
     });
 </script>
+
 

@@ -1,4 +1,5 @@
-from langchain_community.document_loaders import PyPDFLoader, DirectoryLoader
+# === Imports ===
+from langchain_community.document_loaders import DirectoryLoader, PDFPlumberLoader  # Changed loader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_community.vectorstores import FAISS
@@ -10,16 +11,17 @@ from langchain_community.vectorstores import FAISS
 # === Config ===
 DATA_PATH = "data/"
 DB_FAISS_PATH = "vectorstore/db_faiss"
-EMBEDDING_MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
+EMBEDDING_MODEL_NAME = "sentence-transformers/all-mpnet-base-v2"  # Upgraded model
 
-# === Step 1: Load documents ===
+# === Step 1: Load documents from PDFs ===
 def load_documents_from_pdfs(data_path):
-    loader = DirectoryLoader(data_path, glob="*.pdf", loader_cls=PyPDFLoader)
+    # Switched to PDFPlumberLoader for better text extraction
+    loader = DirectoryLoader(data_path, glob="*.pdf", loader_cls=PDFPlumberLoader)
     documents = loader.load()
     return documents
 
 # === Step 2: Split documents into text chunks ===
-def split_documents(documents, chunk_size=500, chunk_overlap=50):
+def split_documents(documents, chunk_size=800, chunk_overlap=100):  # Optional tweak
     splitter = RecursiveCharacterTextSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
     return splitter.split_documents(documents)
 
@@ -38,7 +40,11 @@ if __name__ == "__main__":
     print("[*] Loading documents...")
     docs = load_documents_from_pdfs(DATA_PATH)
 
-    print(f"[*] Loaded {len(docs)} documents. Splitting into chunks...")
+    print(f"[*] Loaded {len(docs)} documents.")
+    print("[*] Example document preview:")
+    print(docs[0].page_content[:500])  # Show first 500 characters to debug gibberish
+
+    print("[*] Splitting into chunks...")
     chunks = split_documents(docs)
 
     print(f"[*] Created {len(chunks)} chunks. Loading embedding model...")

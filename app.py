@@ -15,12 +15,13 @@ model_ready = False
 with open("rag_index.pkl", "rb") as f:
     index, documents = pickle.load(f)
 
-embedder = SentenceTransformer('all-MiniLM-L6-v2')
+# Load embedder (CPU-only since AMD GPU not supported on Windows)
+embedder = SentenceTransformer('all-mpnet-base-v2')
 
 def load_model():
     global generator, model_ready
     print("Loading the model...")
-    generator = pipeline("text-generation", model="distilgpt2")
+    generator = pipeline("text2text-generation", model="google/flan-t5-base")
     model_ready = True
     print("Model loaded successfully!")
 
@@ -47,20 +48,21 @@ def query():
     D, I = index.search(query_embedding, k=1)
     context = documents[I[0][0]]
 
-    # Step 3: Construct prompt
-    prompt = f"Symptoms: {symptoms}\nRelevant Info: {context}\n\nRecommend a medicine and explain why."
+    # Step 3: Construct prompt for better model
+    prompt = f"Given the symptoms: {symptoms}, and the following medical information: {context}, recommend a suitable medicine and explain why."
 
     # Step 4: Generate response
-    raw_output = generator(prompt, max_length=100, num_return_sequences=1)[0]['generated_text']
+    raw_output = generator(prompt, max_length=200, num_return_sequences=1)[0]['generated_text']
 
-    # Simple post-processing (very basic)
-    med = raw_output.split("Recommend a medicine and explain why.")[-1].strip().split('.')[0]
-    reason = '.'.join(raw_output.split('.')[1:]).strip()
+    # Split the output to get medicine and reasoning
+    med = raw_output.split("Medicine:")[-1].split("Reasoning:")[0].strip()
+    reason = raw_output.split("Reasoning:")[-1].strip()
 
     return jsonify({
         'medicine': med,
         'reason': reason or "Explanation not available."
     })
+
 
 if __name__ == '__main__':
     app.run(debug=True)
